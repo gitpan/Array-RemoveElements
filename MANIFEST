@@ -4,6 +4,8 @@ MANIFEST
 README
 lib/Array/RemoveElements.pm
 t/00-load.t
+t/10-remove_elements.t
+t/boilerplate.t
 t/pod-coverage.t
 t/pod.t
 Makefile.PL

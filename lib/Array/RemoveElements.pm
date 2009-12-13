@@ -1,9 +1,8 @@
 package Array::RemoveElements;
-our @EXPORT_OK = qw( remove_elements );
-use base qw(Exporter);
-
 use warnings;
 use strict;
+
+use List::MoreUtils qw(any);
 
 =head1 NAME
 
@@ -11,12 +10,11 @@ Array::RemoveElements - remove named elements from an array
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 
-our $VERSION = '0.01';
-
+our $VERSION = '0.02';
 
 =head1 SYNOPSIS
 
@@ -29,7 +27,7 @@ Example:
 
     my $volumes = Array::remove_elements(\@all_volumes, \@excluded_volumes);
     foreach my $vol (@{$volumes}) {
-        ...
+        # do something with the remaining volumes ...
     }
 
 This module has been developed to simplify the process of writing plugins for 
@@ -38,13 +36,20 @@ several items should be excluded by means of --exclude.
 
 =head1 EXPORT
 
-The following function is exported:
+Only one function is exported on request: 
+
+    remove_elements
+    
+=cut 
+
+our @EXPORT_OK = qw( remove_elements );
+use base qw(Exporter);
 
 =head1 FUNCTIONS
 
 =head2 remove_elements
 
-This function receives two array-references. Any element, which is found in the second 
+This function receives two array-references. Any element from the second 
 array, will be removed from the first. This is true, wether or not the elements
 are listed more than once.
 
@@ -52,7 +57,7 @@ The resulting array is returned by reference.
 
 =head3 Debugging
 
-An optional third argument can be used to turn on debuggung-output. If set to 
+An optional third argument can be used to turn on debugging-output. If set to 
 something greater than 0, additional information is printed to stderr.
 
 Example: 
@@ -63,26 +68,27 @@ Example:
 =cut
 
 sub remove_elements {
-    my $all = shift;        # ref to array 
+    my $all     = shift;    # ref to array
     my $exclude = shift;    # ref to array
     my @diff;               # @diff = @{$all} - @{$exclude}
-    my $debug = shift;          
+    my $debug = shift;
     if ( not defined $debug ) {
         $debug = 0;         # defaults to 0 (=no debugging output)
     }
-    
-    ELEMENT: foreach my $element (@{$all}){
-        if ( grep { /^$element$/ } @{$exclude} ){
+
+  ELEMENT: foreach my $element ( @{$all} ) {
+        if ( any { /^$element$/ } @{$exclude} ) {
             print {*STDERR} "Element $element excluded" . "\n" if $debug > 0;
             next ELEMENT;
-        } else {
+        }
+        else {
             push @diff, $element;
-        };
+        }
     }
     return \@diff;
 }
-
-
+1;    # End of Array::RemoveElements
+__END__
 
 =head1 AUTHOR
 
@@ -124,10 +130,15 @@ L<http://cpanratings.perl.org/d/Array-RemoveElements>
 
 L<http://search.cpan.org/dist/Array-RemoveElements/>
 
+=item * NetApp-Monitoring.info
+
+L<http://www.netapp-monitoring.info/>
+
 =back
 
 
 =head1 ACKNOWLEDGEMENTS
+
 
 
 =head1 COPYRIGHT & LICENSE
@@ -140,4 +151,4 @@ under the same terms as Perl itself.
 
 =cut
 
-1; # End of Array::RemoveElements
+
