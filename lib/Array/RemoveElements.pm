@@ -3,6 +3,7 @@ use warnings;
 use strict;
 
 use List::MoreUtils qw(any);
+use Data::Dumper;
 
 =head1 NAME
 
@@ -10,39 +11,57 @@ Array::RemoveElements - remove named elements from an array
 
 =head1 VERSION
 
-Version 0.02
+Version 0.03
 
 =cut
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 SYNOPSIS
 
-This module receives two arrays. All elements from the second array will be 
-removed from the first if found there.
+This module is used to remove elements in an exclusion-list from elements in an 
+'all'-list. 
 
-Example:
+Example 1: remove_elements
 
-    use Array::RemoveElements;
+    use Array::RemoveElements qw( remove_elements );
 
     my $volumes = Array::remove_elements(\@all_volumes, \@excluded_volumes);
     foreach my $vol (@{$volumes}) {
         # do something with the remaining volumes ...
     }
+    
+All elements from the second array will be removed from the first if found 
+there. 
+
+An other function ('excluded') has been implemented, which can be useful inside of a loop, 
+when the name of the excluded elements are packed into a data-structure, only 
+visible inside of the loop.
+
+Example 2: excluded
+    
+    use Array::RemoveElements qw( excluded );
+    
+    foreach my $vol ( @all_volumes ) {
+        next if excluded($vol, \@excluded_vols);
+        # ...
+    }
 
 This module has been developed to simplify the process of writing plugins for 
 Nagios, where often a list of items to check is determined by the script, but 
-several items should be excluded by means of --exclude.
+several items should be excluded by means of --exclude. If --exclude is undef, 
+all elements are returned. 
 
 =head1 EXPORT
 
-Only one function is exported on request: 
+These functions are exported on request: 
 
     remove_elements
-    
-=cut 
+    excluded
 
-our @EXPORT_OK = qw( remove_elements );
+=cut
+
+our @EXPORT_OK = qw( remove_elements excluded );
 use base qw(Exporter);
 
 =head1 FUNCTIONS
@@ -58,34 +77,80 @@ The resulting array is returned by reference.
 =head3 Debugging
 
 An optional third argument can be used to turn on debugging-output. If set to 
-something greater than 0, additional information is printed to stderr.
+something greater than 0, additional information is printed to stderr. The 
+higher the value, the more details are printed [0..3]. 
 
-Example: 
+Example with debugging on: 
 
     my $volumes = Array::remove_elements(\@all_volumes, \@excluded_volumes, 1);
     ... 
-    
+
 =cut
 
 sub remove_elements {
     my $all     = shift;    # ref to array
     my $exclude = shift;    # ref to array
-    my @diff;               # @diff = @{$all} - @{$exclude}
+    my @diff;               # will be returned. The idea: "@diff = @{$all} - @{$exclude}"
     my $debug = shift;
     if ( not defined $debug ) {
         $debug = 0;         # defaults to 0 (=no debugging output)
     }
-
-  ELEMENT: foreach my $element ( @{$all} ) {
+    print {*STDERR} "Dump of \$all in Array::RemoveElements:\n" . Dumper($all) . "\n" if $debug > 1;
+    if (not defined $exclude) {
+        print {*STDERR} 'All elements will be returned, because the exclusion-array is undef' . "\n" if $debug > 0;
+        return $all;
+    }
+    ELEMENT: foreach my $element ( @{$all} ) {
         if ( any { /^$element$/ } @{$exclude} ) {
             print {*STDERR} "Element $element excluded" . "\n" if $debug > 0;
             next ELEMENT;
         }
         else {
+            print {*STDERR} "Element $element included" . "\n" if $debug > 1;
             push @diff, $element;
         }
     }
     return \@diff;
+}
+
+=head2 excluded
+
+This function receives two values (scalar name of an element and a list of 
+elements to exclude) and returns either 1 or 0.
+
+Typical usage is inside of an foreach-loop as boolean argument for 
+a 'next if ()'
+
+    foreach my $vol ( @all_volumes ) {
+        my $vol_name = $vol->child_get_string('name');
+        next if excluded($vol_name, \@excluded_vols, $DEBUG);
+        # do something with $vol
+        # ...
+    }
+
+=cut
+
+sub excluded {
+    use constant YES => 1;
+    use constant NO  => 0;
+    my $element = shift;    # name of the element
+    my $exclude = shift;    # ref to array of names to exclude
+    my $debug = shift;
+    if ( not defined $debug ) {
+        $debug = 0;         # defaults to 0 (=no debugging output)
+    }
+    if (not defined $exclude) {
+        print {*STDERR} "Exclusion-array is undef ==> element $element NOT excluded" . "\n" if $debug > 0;
+        return NO;
+    }
+    if ( any { /^$element$/ } @{$exclude} ) {
+        print {*STDERR} "Element $element excluded" . "\n" if $debug > 0;
+        return YES;
+    } else {
+        print {*STDERR} "Element $element NOT excluded" . "\n" if $debug > 0;
+        return NO;
+    }
+    die 'ERROR at l146 in RemoveElements.pm - this should not happen' . "\n";
 }
 1;    # End of Array::RemoveElements
 __END__
@@ -133,6 +198,10 @@ L<http://search.cpan.org/dist/Array-RemoveElements/>
 =item * NetApp-Monitoring.info
 
 L<http://www.netapp-monitoring.info/>
+
+=item * Authors homepage about Nagios
+
+L<http://nagios.lantschner.name/>
 
 =back
 

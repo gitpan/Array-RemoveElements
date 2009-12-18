@@ -1,18 +1,27 @@
 ---
 name: Array-RemoveElements
-version: 0.02
+version: 0.03
 author:
   - 'Ingo LANTSCHNER <perl [at] lantschner.name>'
 abstract: remove named elements from an array
 license: perl
 resources:
   license: http://dev.perl.org/licenses/
+requires:
+  Data::Dumper: 0
+  Exporter: 0
+  List::MoreUtils: 0.22
+  base: 1.01
+  constant: 1.02
+  perl: 5.006
 build_requires:
-  Test::More: 0
+  Test::Differences: 0.4801
+  Test::More: 0.47
+  Test::NoWarnings: 0.084
 provides:
   Array::RemoveElements:
     file: lib/Array/RemoveElements.pm
-    version: 0.02
+    version: 0.03
 generated_by: Module::Build version 0.3
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.2.html

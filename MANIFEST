@@ -5,6 +5,7 @@ README
 lib/Array/RemoveElements.pm
 t/00-load.t
 t/10-remove_elements.t
+t/20-excluded.t
 t/boilerplate.t
 t/pod-coverage.t
 t/pod.t

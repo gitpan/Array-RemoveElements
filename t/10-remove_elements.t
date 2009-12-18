@@ -3,10 +3,11 @@
 use strict;
 use warnings;
 
-use Test::More  tests => 8 + 1;
+use Test::More  tests => 9 + 1;
 use Test::NoWarnings;
 use Test::Differences;
 
+use lib '../lib';
 use Array::RemoveElements qw{ remove_elements };
 
 
@@ -64,6 +65,12 @@ use Array::RemoveElements qw{ remove_elements };
     my @exclude         = 'a' .. 'z';
     my @expected_diff; # empty array
     do_test(\@all, \@exclude, \@expected_diff, 'Exclusion-list longer than all');
+}
+
+{
+    my @all             = 'a' .. 'f';
+    my @expected_diff   = 'a' .. 'f'; 
+    do_test(\@all, undef, \@expected_diff, 'Exclusion-list undef');
 }
 
 sub do_test {
